@@ -1,7 +1,39 @@
 [project]
 name = "llm-benchmarking"
 version = "0.1.0"
-description = "Add your description here"
+description = "Modular LLM benchmark tracker with Ollama analysis"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "beautifulsoup4",
+    "httpx",
+    "lxml",
+    "langchain",
+    "langchain-ollama",
+    "playwright",
+    "pydantic",
+    "pyyaml",
+    "rich",
+    "typer",
+]
+
+[project.scripts]
+llm-bench = "llm_benchmarks.main:app"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/llm_benchmarks"]
+
+[tool.pytest.ini_options]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
