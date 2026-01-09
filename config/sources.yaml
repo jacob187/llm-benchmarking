@@ -1,0 +1,28 @@
+# LLM Benchmark Tracker Configuration
+
+# Ollama Settings
+ollama:
+  base_url: "http://localhost:11434"
+  model: "gemma3:4b"  # Default model to use
+  temperature: 0.7
+  max_tokens: 2000
+
+# Scraping Settings
+scraping:
+  timeout: 30000  # Page load timeout in milliseconds
+  user_agent: "LLM-Benchmark-Tracker/0.1.0"
+  cache_ttl: 3600  # Cache time-to-live in seconds (1 hour)
+  headless: true  # Run browser in headless mode
+
+# Analysis Settings
+analysis:
+  # Types of analysis to run by default
+  default_analyses:
+    - summary
+    - coding
+
+  # Maximum length for blog analysis (characters)
+  max_blog_length: 5000
+
+  # Number of top models to highlight in reports
+  top_models_count: 10
