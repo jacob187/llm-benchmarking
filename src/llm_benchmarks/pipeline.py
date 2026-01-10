@@ -20,6 +20,7 @@ class PipelineResult:
     errors: list[str] = field(default_factory=list)
     timestamp: datetime = field(default_factory=datetime.now)
     cache_path: Path | None = None
+    run_id: int | None = None  # Database run ID
 
 
 class BenchmarkPipeline:
@@ -204,6 +205,33 @@ class BenchmarkPipeline:
             errors.append("No models found after aggregation")
 
         result.errors = errors
+
+        # Save to database if enabled
+        try:
+            from .database import DatabaseManager
+            from yaml import safe_load
+
+            # Load config to check if database is enabled
+            config_path = Path(__file__).parent.parent.parent / "config" / "sources.yaml"
+            if config_path.exists():
+                with open(config_path) as f:
+                    config = safe_load(f)
+                    db_enabled = config.get("database", {}).get("enabled", True)
+                    db_path = config.get("database", {}).get("path", "data/history.db")
+            else:
+                db_enabled = True  # Default to enabled if no config
+                db_path = "data/history.db"
+
+            if db_enabled and result.models:  # Only save if we have data
+                db_manager = DatabaseManager(db_path=db_path)
+                run_id = db_manager.record_run(result)
+                result.run_id = run_id
+        except Exception as e:
+            # Database save failure should not break pipeline
+            error_msg = f"Failed to save to database: {str(e)}"
+            result.errors.append(error_msg)
+            # Don't print error to avoid cluttering output
+
         return result
 
     def compare_models(self, model_names: list[str], use_cache: bool = True) -> AnalysisResult:

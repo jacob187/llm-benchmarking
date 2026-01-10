@@ -26,3 +26,9 @@ analysis:
 
   # Number of top models to highlight in reports
   top_models_count: 10
+
+# Database Settings
+database:
+  enabled: true  # Enable historical data tracking
+  path: "data/history.db"  # SQLite database path
+  auto_migrate: true  # Automatically run schema migrations

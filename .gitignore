@@ -57,6 +57,11 @@ data/processed/*.html
 !data/processed/.gitkeep
 !data/raw/.gitkeep
 
+# Database files (historical tracking)
+data/history.db
+data/history.db-shm
+data/history.db-wal
+
 # Integration test scripts (keep as examples)
 # test_*_integration.py files are kept
 
