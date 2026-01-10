@@ -5,15 +5,19 @@ description = "Modular LLM benchmark tracker with Ollama analysis"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "altair>=5.2.0",
     "beautifulsoup4",
     "httpx",
     "lxml",
     "langchain",
     "langchain-ollama",
+    "pandas>=2.1.0",
     "playwright",
+    "plotly>=5.18.0",
     "pydantic",
     "pyyaml",
     "rich",
+    "streamlit>=1.30.0",
     "typer",
 ]
 
