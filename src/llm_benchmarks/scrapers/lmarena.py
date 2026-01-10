@@ -14,7 +14,13 @@ from .base import (
 
 
 class LMArenaScraper(BaseScraper):
-    """Scraper for LM Arena leaderboard."""
+    """
+    Scraper for LM Arena leaderboard.
+
+    Note: LM Arena uses Cloudflare bot protection which may block automated scraping.
+    This scraper implements stealth techniques but may require manual intervention
+    such as using headless=False mode or providing authentication cookies.
+    """
 
     metadata = SourceMetadata(
         name="LM Arena",
@@ -39,23 +45,35 @@ class LMArenaScraper(BaseScraper):
             from playwright.sync_api import sync_playwright
 
             playwright = sync_playwright().start()
-            browser = playwright.chromium.launch(headless=self.headless)
-            page = browser.new_page()
+            # Launch with additional args to avoid detection
+            browser = playwright.chromium.launch(
+                headless=self.headless,
+                args=['--disable-blink-features=AutomationControlled']
+            )
+            context = browser.new_context(
+                viewport={'width': 1920, 'height': 1080},
+                user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            )
+            page = context.new_page()
 
             # Navigate to leaderboard
-            page.goto(self.metadata.url, timeout=self.timeout, wait_until="domcontentloaded")
+            # Use 'load' instead of 'networkidle' to avoid timeout with Cloudflare
+            page.goto(self.metadata.url, timeout=60000, wait_until="load")
 
-            # Wait for content to load - LM Arena uses dynamic rendering
-            # Wait for either a table or data container to appear
-            try:
-                page.wait_for_selector("table, [data-testid*='leaderboard'], div[class*='leaderboard']",
-                                      timeout=self.timeout)
-            except:
-                # If specific selectors fail, wait for general content
-                page.wait_for_timeout(3000)
+            # Wait for Cloudflare challenge and dynamic content to load
+            page.wait_for_timeout(12000)
 
             # Get the page content
             html = page.content()
+
+            # Check if Cloudflare is blocking us
+            if '__cf_chl' in html or 'Checking your browser' in html:
+                return ScrapedContent(
+                    source=self.metadata.name,
+                    timestamp=datetime.now(),
+                    error="Blocked by Cloudflare bot protection. Try running with headless=False or use authentication cookies.",
+                )
+
             soup = self.soup(html)
 
             entries = []
@@ -153,12 +171,15 @@ class LMArenaScraper(BaseScraper):
 
         finally:
             # Clean up browser resources
-            if page:
-                page.close()
-            if browser:
-                browser.close()
-            if playwright:
-                playwright.stop()
+            try:
+                if page:
+                    page.close()
+                if browser:
+                    browser.close()
+                if playwright:
+                    playwright.stop()
+            except:
+                pass  # Ignore cleanup errors
 
     def _parse_json_data(self, data: dict) -> list[BenchmarkEntry]:
         """
