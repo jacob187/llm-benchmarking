@@ -56,29 +56,44 @@ df = pd.DataFrame([
 # Get type counts for filter
 type_counts = get_model_type_counts([r[0] for r in rankings])
 
-# Sidebar filters
+# Build type options with counts
+type_options_list = []
+for model_type in get_model_types():
+    if model_type == MODEL_TYPE_ALL:
+        count = len(df)
+    else:
+        count = type_counts.get(model_type, 0)
+    if count > 0 or model_type == MODEL_TYPE_ALL:
+        type_options_list.append((model_type, count))
+
+# PROMINENT MODEL TYPE FILTER - at top of page
+st.markdown("### Filter by Model Type")
+type_cols = st.columns(len(type_options_list))
+
+# Initialize session state for selected type
+if "explorer_model_type" not in st.session_state:
+    st.session_state.explorer_model_type = MODEL_TYPE_ALL
+
+for i, (model_type, count) in enumerate(type_options_list):
+    with type_cols[i]:
+        is_selected = st.session_state.explorer_model_type == model_type
+        button_type = "primary" if is_selected else "secondary"
+        if st.button(
+            f"{model_type} ({count})",
+            key=f"type_btn_{model_type}",
+            use_container_width=True,
+            type=button_type,
+        ):
+            st.session_state.explorer_model_type = model_type
+            st.rerun()
+
+selected_type = st.session_state.explorer_model_type
+
+st.markdown("---")
+
+# Sidebar filters (additional filters)
 with st.sidebar:
-    st.header("Filters")
-
-    # Model type filter
-    type_options = []
-    for model_type in get_model_types():
-        if model_type == MODEL_TYPE_ALL:
-            type_options.append(f"{model_type} ({len(df)})")
-        else:
-            count = type_counts.get(model_type, 0)
-            if count > 0:
-                type_options.append(f"{model_type} ({count})")
-
-    selected_type_option = st.selectbox(
-        "Model Type",
-        type_options,
-        index=0,
-        help="Filter by model type",
-    )
-    selected_type = selected_type_option.split(" (")[0]
-
-    st.markdown("---")
+    st.header("Additional Filters")
 
     # Search
     search = st.text_input(

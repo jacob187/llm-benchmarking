@@ -48,38 +48,45 @@ if not rankings:
 
 all_model_names = [r[0] for r in rankings]
 
-# Sidebar filters
-with st.sidebar:
-    st.header("Filters")
+# Get type counts for filter
+type_counts = get_model_type_counts(all_model_names)
 
-    # Model type filter
-    type_counts = get_model_type_counts(all_model_names)
+# Build type options with counts
+type_options_list = []
+for model_type in get_model_types():
+    if model_type == MODEL_TYPE_ALL:
+        count = len(all_model_names)
+    else:
+        count = type_counts.get(model_type, 0)
+    if count > 0 or model_type == MODEL_TYPE_ALL:
+        type_options_list.append((model_type, count))
 
-    # Format options with counts
-    type_options = []
-    for model_type in get_model_types():
-        if model_type == MODEL_TYPE_ALL:
-            type_options.append(f"{model_type} ({len(all_model_names)})")
-        else:
-            count = type_counts.get(model_type, 0)
-            if count > 0:
-                type_options.append(f"{model_type} ({count})")
+# PROMINENT MODEL TYPE FILTER - at top of page
+st.markdown("### Select Model Type to Compare")
+st.caption("Choose a model type to compare similar models (e.g., only Text or only Image)")
 
-    selected_type_option = st.selectbox(
-        "Model Type",
-        type_options,
-        index=0,
-        help="Filter models by type to compare similar models",
-    )
+type_cols = st.columns(len(type_options_list))
 
-    # Extract type from selection (remove count)
-    selected_type = selected_type_option.split(" (")[0]
+# Initialize session state for selected type
+if "comparison_model_type" not in st.session_state:
+    st.session_state.comparison_model_type = MODEL_TYPE_TEXT  # Default to Text
 
-    st.markdown("---")
-    st.caption(
-        "Filter by type to compare similar models "
-        "(e.g., only Text models or only Image models)"
-    )
+for i, (model_type, count) in enumerate(type_options_list):
+    with type_cols[i]:
+        is_selected = st.session_state.comparison_model_type == model_type
+        button_type = "primary" if is_selected else "secondary"
+        if st.button(
+            f"{model_type} ({count})",
+            key=f"compare_type_btn_{model_type}",
+            use_container_width=True,
+            type=button_type,
+        ):
+            st.session_state.comparison_model_type = model_type
+            st.rerun()
+
+selected_type = st.session_state.comparison_model_type
+
+st.markdown("---")
 
 # Filter models by type
 model_names = filter_models_by_type(all_model_names, selected_type)
@@ -88,9 +95,8 @@ if not model_names:
     st.warning(f"No {selected_type} models available.")
     st.stop()
 
-# Show current filter
-if selected_type != MODEL_TYPE_ALL:
-    st.info(f"Showing **{selected_type}** models only ({len(model_names)} models)")
+# Show current filter status
+st.success(f"Showing **{selected_type}** models ({len(model_names)} available)")
 
 # Model selection
 selected_models = st.multiselect(

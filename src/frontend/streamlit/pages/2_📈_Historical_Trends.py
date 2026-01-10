@@ -24,6 +24,7 @@ from src.frontend.streamlit.utils.data_loader import (
     filter_models_by_type,
     get_model_type_counts,
     MODEL_TYPE_ALL,
+    MODEL_TYPE_TEXT,
 )
 from src.frontend.streamlit.components.charts import (
     create_trend_line_chart,
@@ -49,34 +50,57 @@ if not rankings:
 
 all_model_names = [r[0] for r in rankings]
 
+# Get type counts for filter
+type_counts = get_model_type_counts(all_model_names)
+
+# Build type options with counts
+type_options_list = []
+for model_type in get_model_types():
+    if model_type == MODEL_TYPE_ALL:
+        count = len(all_model_names)
+    else:
+        count = type_counts.get(model_type, 0)
+    if count > 0 or model_type == MODEL_TYPE_ALL:
+        type_options_list.append((model_type, count))
+
+# PROMINENT MODEL TYPE FILTER - at top of page
+st.markdown("### Filter by Model Type")
+type_cols = st.columns(len(type_options_list))
+
+# Initialize session state for selected type
+if "trends_model_type" not in st.session_state:
+    st.session_state.trends_model_type = MODEL_TYPE_TEXT  # Default to Text
+
+for i, (model_type, count) in enumerate(type_options_list):
+    with type_cols[i]:
+        is_selected = st.session_state.trends_model_type == model_type
+        button_type = "primary" if is_selected else "secondary"
+        if st.button(
+            f"{model_type} ({count})",
+            key=f"trends_type_btn_{model_type}",
+            use_container_width=True,
+            type=button_type,
+        ):
+            st.session_state.trends_model_type = model_type
+            st.rerun()
+
+selected_type = st.session_state.trends_model_type
+
+st.markdown("---")
+
+# Filter models by type
+model_names = filter_models_by_type(all_model_names, selected_type)
+
+if not model_names:
+    st.warning(f"No {selected_type} models available.")
+    st.stop()
+
+# Show current filter status
+st.success(f"Showing **{selected_type}** models ({len(model_names)} available)")
+
 # Sidebar controls
 with st.sidebar:
     st.header("Chart Configuration")
-
-    # Model type filter
-    type_counts = get_model_type_counts(all_model_names)
-
-    type_options = []
-    for model_type in get_model_types():
-        if model_type == MODEL_TYPE_ALL:
-            type_options.append(f"{model_type} ({len(all_model_names)})")
-        else:
-            count = type_counts.get(model_type, 0)
-            if count > 0:
-                type_options.append(f"{model_type} ({count})")
-
-    selected_type_option = st.selectbox(
-        "Model Type",
-        type_options,
-        index=0,
-        help="Filter models by type",
-    )
-    selected_type = selected_type_option.split(" (")[0]
-
-    st.markdown("---")
-
-    # Filter models by type
-    model_names = filter_models_by_type(all_model_names, selected_type)
 
     # Model selection
     default_models = model_names[:3] if len(model_names) >= 3 else model_names
