@@ -17,6 +17,12 @@ if str(project_root) not in sys.path:
 from src.frontend.streamlit.utils.data_loader import (
     load_latest_rankings,
     load_aggregator_cache,
+    get_model_types,
+    get_model_type,
+    filter_models_by_type,
+    get_model_type_counts,
+    MODEL_TYPE_ALL,
+    MODEL_TYPE_TEXT,
 )
 from src.frontend.streamlit.components.charts import (
     create_radar_chart,
@@ -40,7 +46,51 @@ if not rankings:
     st.warning("No model data available. Run `llm-bench scrape` to collect data.")
     st.stop()
 
-model_names = [r[0] for r in rankings]
+all_model_names = [r[0] for r in rankings]
+
+# Sidebar filters
+with st.sidebar:
+    st.header("Filters")
+
+    # Model type filter
+    type_counts = get_model_type_counts(all_model_names)
+
+    # Format options with counts
+    type_options = []
+    for model_type in get_model_types():
+        if model_type == MODEL_TYPE_ALL:
+            type_options.append(f"{model_type} ({len(all_model_names)})")
+        else:
+            count = type_counts.get(model_type, 0)
+            if count > 0:
+                type_options.append(f"{model_type} ({count})")
+
+    selected_type_option = st.selectbox(
+        "Model Type",
+        type_options,
+        index=0,
+        help="Filter models by type to compare similar models",
+    )
+
+    # Extract type from selection (remove count)
+    selected_type = selected_type_option.split(" (")[0]
+
+    st.markdown("---")
+    st.caption(
+        "Filter by type to compare similar models "
+        "(e.g., only Text models or only Image models)"
+    )
+
+# Filter models by type
+model_names = filter_models_by_type(all_model_names, selected_type)
+
+if not model_names:
+    st.warning(f"No {selected_type} models available.")
+    st.stop()
+
+# Show current filter
+if selected_type != MODEL_TYPE_ALL:
+    st.info(f"Showing **{selected_type}** models only ({len(model_names)} models)")
 
 # Model selection
 selected_models = st.multiselect(

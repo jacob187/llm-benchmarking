@@ -20,6 +20,10 @@ from src.frontend.streamlit.utils.data_loader import (
     load_score_history,
     compare_models_over_time,
     get_available_benchmarks,
+    get_model_types,
+    filter_models_by_type,
+    get_model_type_counts,
+    MODEL_TYPE_ALL,
 )
 from src.frontend.streamlit.components.charts import (
     create_trend_line_chart,
@@ -43,17 +47,43 @@ if not rankings:
     st.warning("No model data available. Run `llm-bench scrape` to collect data.")
     st.stop()
 
-model_names = [r[0] for r in rankings]
+all_model_names = [r[0] for r in rankings]
 
 # Sidebar controls
 with st.sidebar:
     st.header("Chart Configuration")
 
+    # Model type filter
+    type_counts = get_model_type_counts(all_model_names)
+
+    type_options = []
+    for model_type in get_model_types():
+        if model_type == MODEL_TYPE_ALL:
+            type_options.append(f"{model_type} ({len(all_model_names)})")
+        else:
+            count = type_counts.get(model_type, 0)
+            if count > 0:
+                type_options.append(f"{model_type} ({count})")
+
+    selected_type_option = st.selectbox(
+        "Model Type",
+        type_options,
+        index=0,
+        help="Filter models by type",
+    )
+    selected_type = selected_type_option.split(" (")[0]
+
+    st.markdown("---")
+
+    # Filter models by type
+    model_names = filter_models_by_type(all_model_names, selected_type)
+
     # Model selection
+    default_models = model_names[:3] if len(model_names) >= 3 else model_names
     selected_models = st.multiselect(
         "Select models to compare",
         model_names,
-        default=model_names[:3] if len(model_names) >= 3 else model_names,
+        default=default_models,
         max_selections=5,
         help="Select up to 5 models to compare",
     )

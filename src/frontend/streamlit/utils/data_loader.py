@@ -292,3 +292,114 @@ def clear_all_caches():
     """Clear all Streamlit caches."""
     st.cache_data.clear()
     st.cache_resource.clear()
+
+
+# Model type constants
+MODEL_TYPE_TEXT = "Text"
+MODEL_TYPE_IMAGE = "Image"
+MODEL_TYPE_VIDEO = "Video"
+MODEL_TYPE_AUDIO = "Audio"
+MODEL_TYPE_SEARCH = "Search/Grounding"
+MODEL_TYPE_ALL = "All Types"
+
+
+def get_model_type(model_name: str) -> str:
+    """
+    Classify a model by its type based on name patterns.
+
+    Args:
+        model_name: Model name to classify
+
+    Returns:
+        str: Model type (Text, Image, Video, Audio, Search/Grounding)
+    """
+    name_lower = model_name.lower()
+
+    # Audio models (check first as some video models have audio variants)
+    if "audio" in name_lower or "voice" in name_lower:
+        return MODEL_TYPE_AUDIO
+
+    # Image models
+    if "image" in name_lower or "seedream" in name_lower:
+        return MODEL_TYPE_IMAGE
+
+    # Video models
+    video_keywords = [
+        "video", "i2v", "t2v", "sora", "veo", "wan",
+        "kling", "seedance", "reve", "pika", "runway"
+    ]
+    if any(kw in name_lower for kw in video_keywords):
+        return MODEL_TYPE_VIDEO
+
+    # Search/Grounding models
+    if "search" in name_lower or "grounding" in name_lower:
+        return MODEL_TYPE_SEARCH
+
+    # Default to text
+    return MODEL_TYPE_TEXT
+
+
+def get_model_types() -> list[str]:
+    """
+    Get list of available model types for filtering.
+
+    Returns:
+        list: List of model type strings
+    """
+    return [
+        MODEL_TYPE_ALL,
+        MODEL_TYPE_TEXT,
+        MODEL_TYPE_IMAGE,
+        MODEL_TYPE_VIDEO,
+        MODEL_TYPE_AUDIO,
+        MODEL_TYPE_SEARCH,
+    ]
+
+
+def filter_models_by_type(
+    model_names: list[str],
+    model_type: str,
+) -> list[str]:
+    """
+    Filter a list of model names by type.
+
+    Args:
+        model_names: List of model names to filter
+        model_type: Type to filter by (or MODEL_TYPE_ALL for no filter)
+
+    Returns:
+        list: Filtered list of model names
+    """
+    if model_type == MODEL_TYPE_ALL:
+        return model_names
+
+    return [
+        name for name in model_names
+        if get_model_type(name) == model_type
+    ]
+
+
+def get_model_type_counts(model_names: list[str]) -> dict[str, int]:
+    """
+    Count models by type.
+
+    Args:
+        model_names: List of model names
+
+    Returns:
+        dict: Mapping of type -> count
+    """
+    counts = {
+        MODEL_TYPE_TEXT: 0,
+        MODEL_TYPE_IMAGE: 0,
+        MODEL_TYPE_VIDEO: 0,
+        MODEL_TYPE_AUDIO: 0,
+        MODEL_TYPE_SEARCH: 0,
+    }
+
+    for name in model_names:
+        model_type = get_model_type(name)
+        if model_type in counts:
+            counts[model_type] += 1
+
+    return counts

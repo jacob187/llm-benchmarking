@@ -18,6 +18,10 @@ from src.frontend.streamlit.utils.data_loader import (
     load_latest_rankings,
     load_score_history,
     load_model_trends,
+    get_model_types,
+    get_model_type,
+    get_model_type_counts,
+    MODEL_TYPE_ALL,
 )
 from src.frontend.streamlit.components.charts import create_trend_line_chart
 
@@ -38,15 +42,43 @@ if not rankings:
     st.warning("No model data available. Run `llm-bench scrape` to collect data.")
     st.stop()
 
-# Convert to DataFrame
+# Convert to DataFrame with model type
 df = pd.DataFrame([
-    {"Model": r[0], "Score": r[1], "Rank": r[2]}
+    {
+        "Model": r[0],
+        "Score": r[1],
+        "Rank": r[2],
+        "Type": get_model_type(r[0]),
+    }
     for r in rankings
 ])
+
+# Get type counts for filter
+type_counts = get_model_type_counts([r[0] for r in rankings])
 
 # Sidebar filters
 with st.sidebar:
     st.header("Filters")
+
+    # Model type filter
+    type_options = []
+    for model_type in get_model_types():
+        if model_type == MODEL_TYPE_ALL:
+            type_options.append(f"{model_type} ({len(df)})")
+        else:
+            count = type_counts.get(model_type, 0)
+            if count > 0:
+                type_options.append(f"{model_type} ({count})")
+
+    selected_type_option = st.selectbox(
+        "Model Type",
+        type_options,
+        index=0,
+        help="Filter by model type",
+    )
+    selected_type = selected_type_option.split(" (")[0]
+
+    st.markdown("---")
 
     # Search
     search = st.text_input(
@@ -58,7 +90,7 @@ with st.sidebar:
     # Sort options
     sort_by = st.selectbox(
         "Sort by",
-        ["Rank", "Score", "Model Name"],
+        ["Rank", "Score", "Model Name", "Type"],
     )
 
     sort_order = st.radio(
@@ -84,6 +116,10 @@ with st.sidebar:
 # Apply filters
 filtered_df = df.copy()
 
+# Model type filter
+if selected_type != MODEL_TYPE_ALL:
+    filtered_df = filtered_df[filtered_df["Type"] == selected_type]
+
 # Search filter
 if search:
     filtered_df = filtered_df[
@@ -102,6 +138,7 @@ sort_column = {
     "Rank": "Rank",
     "Score": "Score",
     "Model Name": "Model",
+    "Type": "Type",
 }[sort_by]
 
 ascending = sort_order == "Ascending"
@@ -143,6 +180,10 @@ with col1:
             "Rank": st.column_config.NumberColumn(
                 "Rank",
                 format="%d",
+            ),
+            "Type": st.column_config.TextColumn(
+                "Type",
+                width="small",
             ),
         },
         height=500,
