@@ -1,0 +1,15 @@
+# Project Instructions for Claude
+
+## Git Workflow
+
+**IMPORTANT**: Always create a git commit after making any file changes. This includes:
+- Creating new files
+- Editing existing files
+- Deleting files
+- Any other modifications to the codebase
+
+After completing any file operation, immediately commit the changes with a descriptive commit message that explains what was changed and why.
+
+Follow the standard git commit workflow:
+1. Stage the changed files with `git add`
+2. Create a commit with a clear, concise message
