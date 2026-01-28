@@ -22,6 +22,7 @@ from src.frontend.streamlit.utils.data_loader import (
     get_model_type,
     get_model_type_counts,
     MODEL_TYPE_ALL,
+    MODEL_TYPE_TEXT,
 )
 from src.frontend.streamlit.components.charts import create_trend_line_chart
 
@@ -70,9 +71,9 @@ for model_type in get_model_types():
 st.markdown("### Filter by Model Type")
 type_cols = st.columns(len(type_options_list))
 
-# Initialize session state for selected type
+# Initialize session state for selected type - default to Text
 if "explorer_model_type" not in st.session_state:
-    st.session_state.explorer_model_type = MODEL_TYPE_ALL
+    st.session_state.explorer_model_type = MODEL_TYPE_TEXT
 
 for i, (model_type, count) in enumerate(type_options_list):
     with type_cols[i]:

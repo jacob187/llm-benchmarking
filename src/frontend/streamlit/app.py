@@ -20,6 +20,11 @@ from src.frontend.streamlit.utils.data_loader import (
     load_previous_rankings,
     load_new_models,
     clear_all_caches,
+    get_model_type,
+    get_model_types,
+    get_model_type_counts,
+    MODEL_TYPE_TEXT,
+    MODEL_TYPE_ALL,
 )
 from src.frontend.streamlit.components.charts import (
     create_top_models_bar_chart,
@@ -86,14 +91,64 @@ if stats:
 
     st.markdown("---")
 
+    # Load rankings data
+    all_rankings = load_latest_rankings()
+    all_previous_rankings = load_previous_rankings()
+
+    # MODEL TYPE FILTER - prominent at top
+    if all_rankings:
+        st.markdown("### Filter by Model Type")
+
+        # Get type counts
+        model_names = [r[0] for r in all_rankings]
+        type_counts = get_model_type_counts(model_names)
+
+        # Build type options with counts
+        type_options_list = []
+        for model_type in get_model_types():
+            if model_type == MODEL_TYPE_ALL:
+                count = len(all_rankings)
+            else:
+                count = type_counts.get(model_type, 0)
+            if count > 0 or model_type == MODEL_TYPE_ALL:
+                type_options_list.append((model_type, count))
+
+        # Initialize session state - default to Text
+        if "home_model_type" not in st.session_state:
+            st.session_state.home_model_type = MODEL_TYPE_TEXT
+
+        type_cols = st.columns(len(type_options_list))
+
+        for i, (model_type, count) in enumerate(type_options_list):
+            with type_cols[i]:
+                is_selected = st.session_state.home_model_type == model_type
+                button_type = "primary" if is_selected else "secondary"
+                if st.button(
+                    f"{model_type} ({count})",
+                    key=f"home_type_btn_{model_type}",
+                    use_container_width=True,
+                    type=button_type,
+                ):
+                    st.session_state.home_model_type = model_type
+                    st.rerun()
+
+        selected_type = st.session_state.home_model_type
+
+        # Filter rankings by type
+        if selected_type != MODEL_TYPE_ALL:
+            rankings = [r for r in all_rankings if get_model_type(r[0]) == selected_type]
+            previous_rankings = [r for r in all_previous_rankings if get_model_type(r[0]) == selected_type] if all_previous_rankings else None
+        else:
+            rankings = all_rankings
+            previous_rankings = all_previous_rankings
+
+        st.markdown("---")
+
     # Top models section
     col1, col2 = st.columns([2, 1])
 
     with col1:
         st.subheader("Top 10 Models by Average Score")
-
-        rankings = load_latest_rankings()
-        previous_rankings = load_previous_rankings()
 
         if rankings:
             # Use ranking change chart if we have previous data
