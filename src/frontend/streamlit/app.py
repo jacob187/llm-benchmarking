@@ -25,6 +25,11 @@ from src.frontend.streamlit.utils.data_loader import (
     get_model_type_counts,
     MODEL_TYPE_TEXT,
     MODEL_TYPE_ALL,
+    is_main_vendor,
+    get_vendor_options,
+    get_vendor_counts,
+    VENDOR_ALL,
+    VENDOR_MAIN,
 )
 from src.frontend.streamlit.components.charts import (
     create_top_models_bar_chart,
@@ -95,15 +100,20 @@ if stats:
     all_rankings = load_latest_rankings()
     all_previous_rankings = load_previous_rankings()
 
-    # MODEL TYPE FILTER - prominent at top
+    # FILTERS - prominent at top
     if all_rankings:
-        st.markdown("### Filter by Model Type")
-
-        # Get type counts
         model_names = [r[0] for r in all_rankings]
+
+        # Initialize session state - defaults
+        if "home_model_type" not in st.session_state:
+            st.session_state.home_model_type = MODEL_TYPE_TEXT
+        if "home_vendor" not in st.session_state:
+            st.session_state.home_vendor = VENDOR_MAIN
+
+        # MODEL TYPE FILTER
+        st.markdown("### Filter by Model Type")
         type_counts = get_model_type_counts(model_names)
 
-        # Build type options with counts
         type_options_list = []
         for model_type in get_model_types():
             if model_type == MODEL_TYPE_ALL:
@@ -112,10 +122,6 @@ if stats:
                 count = type_counts.get(model_type, 0)
             if count > 0 or model_type == MODEL_TYPE_ALL:
                 type_options_list.append((model_type, count))
-
-        # Initialize session state - default to Text
-        if "home_model_type" not in st.session_state:
-            st.session_state.home_model_type = MODEL_TYPE_TEXT
 
         type_cols = st.columns(len(type_options_list))
 
@@ -134,13 +140,54 @@ if stats:
 
         selected_type = st.session_state.home_model_type
 
-        # Filter rankings by type
+        # VENDOR FILTER
+        st.markdown("### Filter by Vendor")
+        vendor_counts = get_vendor_counts(model_names)
+
+        vendor_options = []
+        for vendor in get_vendor_options():
+            if vendor == VENDOR_ALL:
+                count = len(all_rankings)
+            else:
+                count = vendor_counts.get(vendor, 0)
+            vendor_options.append((vendor, count))
+
+        vendor_cols = st.columns(len(vendor_options))
+
+        for i, (vendor, count) in enumerate(vendor_options):
+            with vendor_cols[i]:
+                is_selected = st.session_state.home_vendor == vendor
+                button_type = "primary" if is_selected else "secondary"
+                if st.button(
+                    f"{vendor} ({count})",
+                    key=f"home_vendor_btn_{vendor}",
+                    use_container_width=True,
+                    type=button_type,
+                ):
+                    st.session_state.home_vendor = vendor
+                    st.rerun()
+
+        selected_vendor = st.session_state.home_vendor
+
+        # Apply filters
+        rankings = all_rankings
+
+        # Filter by type
         if selected_type != MODEL_TYPE_ALL:
-            rankings = [r for r in all_rankings if get_model_type(r[0]) == selected_type]
-            previous_rankings = [r for r in all_previous_rankings if get_model_type(r[0]) == selected_type] if all_previous_rankings else None
+            rankings = [r for r in rankings if get_model_type(r[0]) == selected_type]
+
+        # Filter by vendor
+        if selected_vendor == VENDOR_MAIN:
+            rankings = [r for r in rankings if is_main_vendor(r[0])]
+        elif selected_vendor != VENDOR_ALL:
+            rankings = [r for r in rankings if not is_main_vendor(r[0])]
+
+        # Filter previous_rankings dict to match
+        if all_previous_rankings:
+            filtered_model_names = {r[0] for r in rankings}
+            previous_rankings = {k: v for k, v in all_previous_rankings.items() if k in filtered_model_names}
         else:
-            rankings = all_rankings
-            previous_rankings = all_previous_rankings
+            previous_rankings = None
 
         st.markdown("---")
 

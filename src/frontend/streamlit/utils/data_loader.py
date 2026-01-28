@@ -403,3 +403,104 @@ def get_model_type_counts(model_names: list[str]) -> dict[str, int]:
             counts[model_type] += 1
 
     return counts
+
+
+# Vendor constants
+VENDOR_ALL = "All Vendors"
+VENDOR_MAIN = "Main Vendors"
+VENDOR_OTHER = "Other"
+
+# Main vendor patterns (case-insensitive matching)
+MAIN_VENDORS = {
+    "Anthropic": ["claude"],
+    "OpenAI": ["gpt", "o1", "o3", "chatgpt"],
+    "Google": ["gemini", "bard", "palm"],
+    "Meta": ["llama", "meta"],
+    "xAI": ["grok"],
+    "Mistral": ["mistral", "mixtral"],
+    "Cohere": ["command", "cohere"],
+    "DeepSeek": ["deepseek"],
+}
+
+
+def get_model_vendor(model_name: str) -> str:
+    """
+    Identify the vendor of a model based on name patterns.
+
+    Args:
+        model_name: Model name to classify
+
+    Returns:
+        str: Vendor name or "Other"
+    """
+    name_lower = model_name.lower()
+
+    for vendor, patterns in MAIN_VENDORS.items():
+        if any(pattern in name_lower for pattern in patterns):
+            return vendor
+
+    return VENDOR_OTHER
+
+
+def is_main_vendor(model_name: str) -> bool:
+    """
+    Check if a model is from a main vendor.
+
+    Args:
+        model_name: Model name to check
+
+    Returns:
+        bool: True if from a main vendor
+    """
+    return get_model_vendor(model_name) != VENDOR_OTHER
+
+
+def get_vendor_options() -> list[str]:
+    """
+    Get list of vendor filter options.
+
+    Returns:
+        list: List of vendor filter strings
+    """
+    return [VENDOR_ALL, VENDOR_MAIN, VENDOR_OTHER]
+
+
+def filter_models_by_vendor(
+    model_names: list[str],
+    vendor_filter: str,
+) -> list[str]:
+    """
+    Filter models by vendor.
+
+    Args:
+        model_names: List of model names
+        vendor_filter: Vendor filter option
+
+    Returns:
+        list: Filtered model names
+    """
+    if vendor_filter == VENDOR_ALL:
+        return model_names
+    elif vendor_filter == VENDOR_MAIN:
+        return [name for name in model_names if is_main_vendor(name)]
+    elif vendor_filter == VENDOR_OTHER:
+        return [name for name in model_names if not is_main_vendor(name)]
+    else:
+        return model_names
+
+
+def get_vendor_counts(model_names: list[str]) -> dict[str, int]:
+    """
+    Count models by vendor category.
+
+    Args:
+        model_names: List of model names
+
+    Returns:
+        dict: Mapping of vendor filter -> count
+    """
+    main_count = sum(1 for name in model_names if is_main_vendor(name))
+    return {
+        VENDOR_MAIN: main_count,
+        VENDOR_OTHER: len(model_names) - main_count,
+    }
