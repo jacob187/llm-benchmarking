@@ -37,7 +37,7 @@ st.title("📊 Model Explorer")
 st.markdown("Browse and search all tracked language models")
 
 # Load data
-rankings = load_latest_rankings()
+rankings = load_latest_rankings(benchmark="LMSYS Arena ELO")
 
 if not rankings:
     st.warning("No model data available. Run `llm-bench scrape` to collect data.")

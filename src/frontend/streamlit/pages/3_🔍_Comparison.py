@@ -39,8 +39,8 @@ st.set_page_config(
 st.title("🔍 Model Comparison")
 st.markdown("Compare multiple models side-by-side across all benchmarks")
 
-# Load model list
-rankings = load_latest_rankings()
+# Load model list - use LMSYS Arena ELO to avoid scale issues
+rankings = load_latest_rankings(benchmark="LMSYS Arena ELO")
 
 if not rankings:
     st.warning("No model data available. Run `llm-bench scrape` to collect data.")

@@ -96,9 +96,10 @@ if stats:
 
     st.markdown("---")
 
-    # Load rankings data
-    all_rankings = load_latest_rankings()
-    all_previous_rankings = load_previous_rankings()
+    # Load rankings data - use LMSYS Arena ELO specifically to avoid
+    # averaging issues with incompatible benchmark scales
+    all_rankings = load_latest_rankings(benchmark="LMSYS Arena ELO")
+    all_previous_rankings = load_previous_rankings(benchmark="LMSYS Arena ELO")
 
     # FILTERS - prominent at top
     if all_rankings:

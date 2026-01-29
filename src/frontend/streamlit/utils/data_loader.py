@@ -262,7 +262,8 @@ def get_all_model_names() -> list[str]:
         list: List of model names
     """
     try:
-        rankings = load_latest_rankings()
+        # Use LMSYS Arena ELO to avoid scale issues with mixed benchmarks
+        rankings = load_latest_rankings(benchmark="LMSYS Arena ELO")
         return [r[0] for r in rankings]
     except Exception as e:
         return []
