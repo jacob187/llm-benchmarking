@@ -78,7 +78,7 @@ for i, (model_type, count) in enumerate(type_options_list):
         if st.button(
             f"{model_type} ({count})",
             key=f"trends_type_btn_{model_type}",
-            use_container_width=True,
+            width='stretch',
             type=button_type,
         ):
             st.session_state.trends_model_type = model_type
@@ -168,7 +168,7 @@ if len(selected_models) == 1:
             model_name,
             show_markers=show_markers,
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
         # Summary statistics
         st.markdown("---")
@@ -222,7 +222,7 @@ if len(selected_models) == 1:
                 }
                 for h in history
             ])
-            st.dataframe(history_df, use_container_width=True, hide_index=True)
+            st.dataframe(history_df, width='stretch', hide_index=True)
 
     else:
         st.warning(f"No history data available for {model_name}.")
@@ -256,7 +256,7 @@ else:
             selected_benchmark,
             show_markers=show_markers,
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
         # Summary table
         st.markdown("---")
@@ -288,7 +288,7 @@ else:
         summary_df = pd.DataFrame(summary_data)
         st.dataframe(
             summary_df,
-            use_container_width=True,
+            width='stretch',
             hide_index=True,
         )
 

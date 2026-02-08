@@ -78,7 +78,7 @@ for i, (model_type, count) in enumerate(type_options_list):
         if st.button(
             f"{model_type} ({count})",
             key=f"compare_type_btn_{model_type}",
-            use_container_width=True,
+            width='stretch',
             type=button_type,
         ):
             st.session_state.comparison_model_type = model_type
@@ -133,7 +133,7 @@ if not aggregator:
             subset=["Average Score"],
             cmap="RdYlGn",
         ),
-        use_container_width=True,
+        width='stretch',
         hide_index=True,
     )
 
@@ -211,7 +211,7 @@ with tab1:
 
     st.dataframe(
         styled_df,
-        use_container_width=True,
+        width='stretch',
         hide_index=True,
     )
 
@@ -248,7 +248,7 @@ with tab2:
     st.subheader("Radar Comparison")
 
     fig = create_radar_chart(model_benchmarks)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     st.info(
         "The radar chart shows normalized performance across all benchmarks. "
@@ -259,7 +259,7 @@ with tab3:
     st.subheader("Performance Heatmap")
 
     fig = create_heatmap_comparison(model_benchmarks)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     st.info(
         "Green indicates higher scores, red indicates lower scores. "
@@ -293,7 +293,7 @@ with col1:
     if stats_data:
         st.dataframe(
             pd.DataFrame(stats_data),
-            use_container_width=True,
+            width='stretch',
             hide_index=True,
         )
 

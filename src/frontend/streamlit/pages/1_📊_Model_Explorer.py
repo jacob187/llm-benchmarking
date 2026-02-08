@@ -82,7 +82,7 @@ for i, (model_type, count) in enumerate(type_options_list):
         if st.button(
             f"{model_type} ({count})",
             key=f"type_btn_{model_type}",
-            use_container_width=True,
+            width='stretch',
             type=button_type,
         ):
             st.session_state.explorer_model_type = model_type
@@ -182,7 +182,7 @@ with col1:
     # Display table
     st.dataframe(
         filtered_df,
-        use_container_width=True,
+        width='stretch',
         hide_index=True,
         column_config={
             "Model": st.column_config.TextColumn(
@@ -239,7 +239,7 @@ with col2:
             if history:
                 # Create trend chart
                 fig = create_trend_line_chart(history, selected_model)
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width='stretch')
 
                 # Show recent history as table
                 with st.expander("View History Data"):
@@ -257,7 +257,7 @@ with col2:
 
                     st.dataframe(
                         pd.DataFrame(history_data),
-                        use_container_width=True,
+                        width='stretch',
                         hide_index=True,
                     )
             else:

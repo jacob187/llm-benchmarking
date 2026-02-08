@@ -133,7 +133,7 @@ if stats:
                 if st.button(
                     f"{model_type} ({count})",
                     key=f"home_type_btn_{model_type}",
-                    use_container_width=True,
+                    width='stretch',
                     type=button_type,
                 ):
                     st.session_state.home_model_type = model_type
@@ -162,7 +162,7 @@ if stats:
                 if st.button(
                     f"{vendor} ({count})",
                     key=f"home_vendor_btn_{vendor}",
-                    use_container_width=True,
+                    width='stretch',
                     type=button_type,
                 ):
                     st.session_state.home_vendor = vendor
@@ -207,7 +207,7 @@ if stats:
             else:
                 fig = create_top_models_bar_chart(rankings, limit=10)
 
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         else:
             st.info("No ranking data available.")
 
