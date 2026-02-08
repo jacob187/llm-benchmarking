@@ -4,18 +4,22 @@
 # Navigate to project root
 cd "$(dirname "$0")"
 
-# Check if streamlit is installed
-if ! command -v streamlit &> /dev/null; then
-    echo "Streamlit not found. Installing dependencies..."
-    uv sync
+# Ensure dependencies are installed
+if ! command -v uv &> /dev/null; then
+    echo "Error: uv is not installed. Please install uv first."
+    exit 1
 fi
+
+# Sync dependencies to ensure everything is up to date
+echo "Syncing dependencies..."
+uv sync
 
 # Run Streamlit
 echo "Starting LLM Benchmark Dashboard..."
 echo "Access at: http://localhost:8501"
 echo ""
 
-streamlit run src/frontend/streamlit/app.py \
+uv run streamlit run src/frontend/streamlit/app.py \
     --server.port 8501 \
     --server.address localhost \
     --browser.gatherUsageStats false
