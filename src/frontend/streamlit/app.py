@@ -196,16 +196,28 @@ if stats:
     col1, col2 = st.columns([2, 1])
 
     with col1:
-        st.subheader("Top 10 Models by Average Score")
+        # Add control for number of models to display
+        col_title, col_slider = st.columns([2, 1])
+        with col_title:
+            st.subheader("Top Models by Average Score")
+        with col_slider:
+            num_models = st.slider(
+                "Show top:",
+                min_value=5,
+                max_value=min(50, len(rankings)) if rankings else 50,
+                value=min(20, len(rankings)) if rankings else 20,
+                step=5,
+                key="home_top_models_limit",
+            )
 
         if rankings:
             # Use ranking change chart if we have previous data
             if previous_rankings:
                 fig = create_ranking_change_chart(
-                    rankings, previous_rankings, limit=10
+                    rankings, previous_rankings, limit=num_models
                 )
             else:
-                fig = create_top_models_bar_chart(rankings, limit=10)
+                fig = create_top_models_bar_chart(rankings, limit=num_models)
 
             st.plotly_chart(fig, width='stretch')
         else:
