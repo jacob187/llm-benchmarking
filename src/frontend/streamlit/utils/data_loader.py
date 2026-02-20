@@ -421,6 +421,7 @@ MAIN_VENDORS = {
     "Mistral": ["mistral", "mixtral"],
     "Cohere": ["command", "cohere"],
     "DeepSeek": ["deepseek"],
+    "MoonshotAI": ["moonshot", "kimi"],
 }
 
 
