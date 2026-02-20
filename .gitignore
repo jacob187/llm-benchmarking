@@ -61,6 +61,10 @@ data/processed/*.html
 data/history.db
 data/history.db-shm
 data/history.db-wal
+*history.db-wal
+*history.db
+*history.db-shm
+*cache.json
 
 # Integration test scripts (keep as examples)
 # test_*_integration.py files are kept
