@@ -9,6 +9,7 @@ from typing import Optional
 from llm_benchmarks.database.repository import HistoryRepository
 from llm_benchmarks.database.models import DatabaseStats
 from llm_benchmarks.data_aggregator import BenchmarkAggregator
+from llm_benchmarks.pipeline import BenchmarkPipeline
 
 
 @st.cache_resource
@@ -287,6 +288,30 @@ def get_available_benchmarks() -> list[str]:
         "TruthfulQA",
         "ARC",
     ]
+
+
+def run_scraper() -> dict:
+    """
+    Run the benchmark scraper pipeline.
+
+    Executes the same scrape logic as `llm-bench scrape` — fetches fresh
+    data from all registered sources (LMSYS Arena, LM Arena, blogs),
+    aggregates models, saves to cache and database.
+
+    Returns:
+        dict: Results with keys 'models_count', 'errors', and 'cache_path'
+    """
+    pipeline = BenchmarkPipeline()
+    result = pipeline.run(
+        skip_scrape=False,
+        analyses=[],
+        save_cache=True,
+    )
+    return {
+        "models_count": len(result.models),
+        "errors": result.errors,
+        "cache_path": str(result.cache_path) if result.cache_path else None,
+    }
 
 
 def clear_all_caches():

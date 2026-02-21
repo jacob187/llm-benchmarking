@@ -20,6 +20,7 @@ from src.frontend.streamlit.utils.data_loader import (
     load_previous_rankings,
     load_new_models,
     clear_all_caches,
+    run_scraper,
     get_model_type,
     get_model_types,
     get_model_type_counts,
@@ -57,8 +58,22 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Refresh button
+    # Refresh button - clears cached data and reloads from DB
     if st.button("🔄 Refresh Data"):
+        clear_all_caches()
+        st.rerun()
+
+    # Scrape button - fetches fresh data from all benchmark sources
+    if st.button("🕷️ Scrape New Data"):
+        with st.spinner("Scraping benchmark sources..."):
+            result = run_scraper()
+        if result["errors"]:
+            st.warning(
+                f"Scraped {result['models_count']} models "
+                f"with {len(result['errors'])} error(s)"
+            )
+        else:
+            st.success(f"Scraped {result['models_count']} models")
         clear_all_caches()
         st.rerun()
 
